@@ -7,12 +7,22 @@ class Entry
   embedded_in :record
   
   field :description, type: String
+  field :specifics, type: String
   field :time, type: Integer
   field :start_time, type: Integer
   field :end_time, type: Integer
   field :status, type: String
   field :codes, type: Hash, default: {}
   field :value, type: Hash, default: {}
+  field :free_text, type: String
+  field :mood_code, type: String, default: "EVN"
+  field :negationInd, type: Boolean
+  field :negationReason, type: Hash
+  
+  alias :negation_ind :negationInd
+  alias :negation_ind= :negationInd=
+  alias :negation_reason :negationReason
+  alias :negation_reason= :negationReason=
   
   attr_protected :version
   attr_protected :_id
@@ -56,32 +66,32 @@ class Entry
   
   def times_to_s
     if start_time.present? || end_time.present?
-      start_string = start_time ? Time.at(start_time).to_formatted_s(:long_ordinal) : 'UNK'
-      end_string = end_time ? Time.at(end_time).to_formatted_s(:long_ordinal) : 'UNK'
+      start_string = start_time ? Time.at(start_time).utc.to_formatted_s(:long_ordinal) : 'UNK'
+      end_string = end_time ? Time.at(end_time).utc.to_formatted_s(:long_ordinal) : 'UNK'
       "#{start_string} - #{end_string}"
     elsif time.present?
-      Time.at(time).to_formatted_s(:long_ordinal)
+      Time.at(time).utc.to_formatted_s(:long_ordinal)
     end
   end
   
-  def to_effective_time(xml)
-    if time.present?
-      xml.effectiveTime("value" => Time.at(time).utc.to_formatted_s(:number))
-    else
-      xml.effectiveTime do
-        if start_time.present?
-          xml.low("value" => Time.at(start_time).utc.to_formatted_s(:number))
-        else
-          xml.low("nullFlavor" => "UNK")
-        end
-        if end_time.present?
-          xml.high("value" => Time.at(end_time).utc.to_formatted_s(:number))          
-        else
-          xml.high("nullFlavor" => "UNK")          
-        end
-      end
-    end
-  end
+  # def to_effective_time(xml)
+  #   if time.present?
+  #     xml.effectiveTime("value" => Time.at(time).utc.to_formatted_s(:number))
+  #   else
+  #     xml.effectiveTime do
+  #       if start_time.present?
+  #         xml.low("value" => Time.at(start_time).utc.to_formatted_s(:number))
+  #       else
+  #         xml.low("nullFlavor" => "UNK")
+  #       end
+  #       if end_time.present?
+  #         xml.high("value" => Time.at(end_time).utc.to_formatted_s(:number))          
+  #       else
+  #         xml.high("nullFlavor" => "UNK")          
+  #       end
+  #     end
+  #   end
+  # end
   
   def self.from_event_hash(event)
     entry = Entry.new
@@ -94,6 +104,9 @@ class Entry
     end
     if event['description']
       entry.description = event['description']
+    end
+    if event['specifics']
+      entry.specifics = event['specifics']
     end
     if event['status']
       entry.status = event['status']
@@ -197,6 +210,10 @@ class Entry
     
     if description
       entry_hash['description'] = description
+    end
+
+    if specifics
+      entry_hash['specifics'] = specifics
     end
     
     entry_hash

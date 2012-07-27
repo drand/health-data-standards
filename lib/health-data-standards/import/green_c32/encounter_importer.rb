@@ -17,14 +17,8 @@ module HealthDataStandards
           extract_code(encounter_element, encounter, "./gc32:admissionType", :admit_type)
           extract_code(encounter_element, encounter, "./gc32:reasonForVisit", :reason)
           extract_code(encounter_element, encounter)
-          extract_interval(encounter_element, encounter)
           extract_facility(encounter_element, encounter)
-          
-          free_text = encounter_element.xpath("./gc32:freeText").first
-
-          if free_text
-            encounter.free_text = free_text.content
-          end
+          extract_free_text(encounter_element, encounter)
           
           encounter
         end

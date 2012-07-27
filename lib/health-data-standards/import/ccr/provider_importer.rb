@@ -18,8 +18,9 @@ module HealthDataStandards
         # Differentiate care providers by content of this field
           provider = {}
           if actor.at_xpath('./ccr:Person/ccr:Name/ccr:CurrentName/ccr:Given')
-            provider[:given_name] = actor.at_xpath('./ccr:Person/ccr:Name/ccr:CurrentName/ccr:Given').content
-            provider[:family_name] = actor.at_xpath('./ccr:Person/ccr:Name/ccr:CurrentName/ccr:Family').content
+            provider[:given_name] = extract_data(actor, './ccr:Person/ccr:Name/ccr:CurrentName/ccr:Given')
+            provider[:family_name] = extract_data(actor, './ccr:Person/ccr:Name/ccr:CurrentName/ccr:Family')
+            provider[:specialty] = extract_data(actor, './ccr:Specialty/ccr:Text')
           end
           
           provider[:specialty] = extract_data(actor, './ccr:Specialty/ccr:Text')
@@ -29,11 +30,7 @@ module HealthDataStandards
           if npi_ids
             npi_id = npi_ids.at_xpath("./ccr:ID")
             npi = npi_id.content
-            if Provider.valid_npi?(npi)
-              provider[:npi] = npi
-            else
-              puts "Warning: Invalid NPI (#{npi})"
-            end
+            provider[:npi] = npi if Provider.valid_npi?(npi)
           end
           
           # binding.pry
