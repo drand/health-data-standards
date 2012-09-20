@@ -40,7 +40,7 @@ class Entry
   # Will return a single code and code set if one exists in the code sets that are
   # passed in. Returns a hash with a key of code and code_set if found, nil otherwise
   def preferred_code(preferred_code_sets, codes_attribute=:codes)
-    codes_value = send(codes_attribute)
+    codes_value = send(codes_attribute) || {}
     matching_code_sets = preferred_code_sets & codes_value.keys
     if matching_code_sets.present?
       code_set = matching_code_sets.first
